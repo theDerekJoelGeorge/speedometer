@@ -2,7 +2,7 @@
   "name": "GPS Speedometer",
   "short_name": "Speedometer",
   "description": "Live GPS speedometer with trip stats and signal quality",
-  "start_url": "./gps-speedometer.html",
+  "start_url": "./",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#ffffff",
