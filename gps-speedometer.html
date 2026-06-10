@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="description" content="Live GPS speedometer with trip stats and signal quality">
+  <meta name="theme-color" content="#ffffff">
+  <title>GPS Speedometer</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app" id="app">
+    <header class="app-header">
+      <button
+        type="button"
+        class="icon-btn icon-btn--ghost"
+        id="theme-toggle"
+        aria-label="Switch to dark mode"
+        title="Toggle theme"
+      >
+        <span class="icon-theme" aria-hidden="true"></span>
+      </button>
+
+      <div class="heading-pill" id="heading-pill" aria-label="Current heading">
+        <svg class="heading-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.5"/>
+          <g class="heading-needle" id="heading-needle">
+            <path
+              class="needle-north"
+              d="M12 4.5 L12 12 L9.5 12 Z"
+              fill="currentColor"
+            />
+            <path
+              class="needle-south"
+              d="M12 19.5 L12 12 L14.5 12 Z"
+              fill="currentColor"
+              opacity="0.35"
+            />
+          </g>
+        </svg>
+        <span id="heading-compass">--</span>
+      </div>
+
+      <button
+        type="button"
+        class="icon-btn icon-btn--ghost"
+        id="hud-toggle"
+        aria-label="Enable HUD mode"
+        aria-pressed="false"
+        title="HUD mode"
+      >
+        <span class="icon-hud" aria-hidden="true">HUD</span>
+      </button>
+    </header>
+
+    <p class="status-label visually-hidden" id="status-label" role="status" aria-live="polite">
+      Waiting for signal
+    </p>
+
+    <main class="app-main">
+      <section class="gauge-section" aria-labelledby="speed-label">
+        <div class="gauge-wrap" id="gauge-wrap">
+          <svg class="speed-gauge" viewBox="0 0 320 190" aria-hidden="true">
+            <path
+              class="gauge-track"
+              d="M 24 170 A 136 136 0 0 1 296 170"
+              pathLength="110"
+            />
+            <path
+              class="gauge-fill"
+              id="gauge-fill"
+              d="M 24 170 A 136 136 0 0 1 296 170"
+              pathLength="110"
+              stroke-dasharray="0 110"
+            />
+          </svg>
+
+          <div class="speed-readout" id="speed-hero">
+            <span class="visually-hidden" id="speed-label">Current speed</span>
+            <span class="speed-value zone-neutral" id="speed-value" aria-labelledby="speed-label">--</span>
+            <span class="speed-unit" id="speed-unit">KM/H</span>
+            <p class="speed-notice hidden" id="speed-notice" aria-live="polite"></p>
+            <span class="speed-estimate-badge hidden" id="speed-estimate-badge" aria-hidden="true">est.</span>
+          </div>
+        </div>
+
+        <fieldset class="unit-toggle" aria-label="Speed unit">
+          <legend class="visually-hidden">Speed unit</legend>
+          <label class="unit-option">
+            <input type="radio" name="unit" value="kmh" checked>
+            <span>km/h</span>
+          </label>
+          <label class="unit-option">
+            <input type="radio" name="unit" value="mph">
+            <span>mph</span>
+          </label>
+        </fieldset>
+      </section>
+
+      <section class="trip-stats" aria-label="Trip statistics">
+        <div class="stat">
+          <span class="stat-value" id="metric-max">--</span>
+          <span class="stat-label">Max speed</span>
+        </div>
+        <div class="stat">
+          <span class="stat-value" id="metric-distance">--</span>
+          <span class="stat-label">Trip distance</span>
+        </div>
+        <div class="stat">
+          <span class="stat-value" id="metric-elapsed">--</span>
+          <span class="stat-label">Trip time</span>
+        </div>
+      </section>
+
+      <section class="controls-section" aria-label="Trip controls">
+        <div class="control-buttons">
+          <button type="button" class="btn btn-trip" id="btn-start">Start trip</button>
+          <button type="button" class="btn btn-trip" id="btn-stop" disabled>End trip</button>
+        </div>
+      </section>
+
+      <section class="message-section hidden" id="message-section" aria-live="polite">
+        <p class="message-text" id="message-text"></p>
+      </section>
+    </main>
+  </div>
+
+  <noscript>
+    <p class="noscript-fallback">GPS Speedometer requires JavaScript to run.</p>
+  </noscript>
+
+  <script src="script.js" defer></script>
+</body>
+</html>
