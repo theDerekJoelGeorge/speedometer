@@ -4,8 +4,8 @@
   "description": "Live GPS speedometer with trip stats and signal quality",
   "start_url": "./",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#ffffff",
+  "background_color": "#0a0e14",
+  "theme_color": "#0a0e14",
   "orientation": "portrait-primary",
   "icons": [
     {

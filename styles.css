@@ -29,6 +29,8 @@
   --gauge-track: #111111;
   --btn-trip-bg: #e8e8e8;
   --btn-trip-text: #111111;
+  --btn-end-bg: #ef4444;
+  --btn-end-text: #ffffff;
   color-scheme: light;
 }
 
@@ -42,6 +44,8 @@
   --gauge-track: #374151;
   --btn-trip-bg: #1f2937;
   --btn-trip-text: #f3f4f6;
+  --btn-end-bg: #dc2626;
+  --btn-end-text: #ffffff;
   --zone-neutral: #f3f4f6;
   color-scheme: dark;
 }
@@ -204,8 +208,22 @@ body {
   position: relative;
   width: 100%;
   max-width: 340px;
-  aspect-ratio: 320 / 190;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.375rem;
   transition: transform var(--transition-medium);
+}
+
+.gauge-face {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 320 / 190;
+  --viewbox-h: 190;
+  --arc-end-y: 170;
+  --arc-visual-bottom: calc(
+    (var(--arc-end-y) + var(--gauge-stroke) / 2) / var(--viewbox-h) * 100%
+  );
 }
 
 .speed-gauge {
@@ -235,28 +253,27 @@ body {
 .gauge-fill.zone-yellow { stroke: var(--zone-yellow); }
 .gauge-fill.zone-red { stroke: var(--zone-red); }
 
-/* ── Speed readout (centered in arc) ───────────────────────── */
+/* ── Speed readout — number bottom on arc opening line ─────── */
 
 .speed-readout {
   position: absolute;
-  left: 50%;
-  bottom: 8%;
-  transform: translateX(-50%);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  width: 70%;
+  inset: 0;
+  pointer-events: none;
 }
 
 .speed-value {
-  font-size: clamp(4.5rem, 20vw, 6.5rem);
+  position: absolute;
+  left: 50%;
+  top: var(--arc-visual-bottom);
+  transform: translate(-50%, -100%);
+  font-size: clamp(3.5rem, 16vw, 5rem);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   line-height: 1;
   letter-spacing: -0.04em;
   color: var(--zone-neutral);
   transition: color var(--transition-fast);
+  white-space: nowrap;
 }
 
 .speed-value.zone-green { color: var(--zone-green); }
@@ -264,22 +281,23 @@ body {
 .speed-value.zone-red { color: var(--zone-red); }
 
 .speed-unit {
-  margin-top: 0.125rem;
-  font-size: 0.9375rem;
+  font-size: 0.875rem;
   font-weight: 500;
+  line-height: 1;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--text-secondary);
+  text-align: center;
 }
 
 .speed-notice {
-  margin-top: 0.625rem;
   font-size: 0.8125rem;
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--text-secondary);
   min-height: 1.25rem;
+  text-align: center;
   transition: color var(--transition-fast), opacity var(--transition-medium);
 }
 
@@ -289,8 +307,9 @@ body {
 
 .speed-estimate-badge {
   position: absolute;
-  top: 0.5rem;
-  right: 0;
+  left: calc(50% + 2.5rem);
+  top: var(--arc-visual-bottom);
+  transform: translateY(-100%);
   font-size: 0.625rem;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -299,7 +318,12 @@ body {
 }
 
 /* HUD mode */
-.app.is-hud .gauge-wrap {
+.app.is-hud .gauge-face {
+  transform: scaleX(-1);
+}
+
+.app.is-hud .speed-unit,
+.app.is-hud .speed-notice {
   transform: scaleX(-1);
 }
 
@@ -425,6 +449,19 @@ body {
 .btn-trip {
   background: var(--btn-trip-bg);
   color: var(--btn-trip-text);
+}
+
+.btn-end {
+  background: var(--btn-end-bg);
+  color: var(--btn-end-text);
+}
+
+.btn-end:hover:not(:disabled) {
+  filter: brightness(1.06);
+}
+
+.btn-end:focus-visible {
+  outline-color: var(--btn-end-bg);
 }
 
 /* ── Messages ──────────────────────────────────────────────── */

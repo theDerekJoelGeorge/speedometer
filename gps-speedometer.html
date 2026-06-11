@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="description" content="Live GPS speedometer with trip stats and signal quality">
-  <meta name="theme-color" content="#ffffff">
+  <meta name="theme-color" content="#0a0e14">
   <title>GPS Speedometer</title>
   <link rel="manifest" href="manifest.json">
   <link rel="stylesheet" href="styles.css">
@@ -16,7 +16,7 @@
         type="button"
         class="icon-btn icon-btn--ghost"
         id="theme-toggle"
-        aria-label="Switch to dark mode"
+        aria-label="Switch to light mode"
         title="Toggle theme"
       >
         <span class="icon-theme" aria-hidden="true"></span>
@@ -61,28 +61,31 @@
     <main class="app-main">
       <section class="gauge-section" aria-labelledby="speed-label">
         <div class="gauge-wrap" id="gauge-wrap">
-          <svg class="speed-gauge" viewBox="0 0 320 190" aria-hidden="true">
-            <path
-              class="gauge-track"
-              d="M 24 170 A 136 136 0 0 1 296 170"
-              pathLength="110"
-            />
-            <path
-              class="gauge-fill"
-              id="gauge-fill"
-              d="M 24 170 A 136 136 0 0 1 296 170"
-              pathLength="110"
-              stroke-dasharray="0 110"
-            />
-          </svg>
+          <div class="gauge-face">
+            <svg class="speed-gauge" viewBox="0 0 320 190" aria-hidden="true">
+              <path
+                class="gauge-track"
+                d="M 24 170 A 136 136 0 0 1 296 170"
+                pathLength="110"
+              />
+              <path
+                class="gauge-fill"
+                id="gauge-fill"
+                d="M 24 170 A 136 136 0 0 1 296 170"
+                pathLength="110"
+                stroke-dasharray="0 110"
+              />
+            </svg>
 
-          <div class="speed-readout" id="speed-hero">
-            <span class="visually-hidden" id="speed-label">Current speed</span>
-            <span class="speed-value zone-neutral" id="speed-value" aria-labelledby="speed-label">--</span>
-            <span class="speed-unit" id="speed-unit">KM/H</span>
-            <p class="speed-notice hidden" id="speed-notice" aria-live="polite"></p>
-            <span class="speed-estimate-badge hidden" id="speed-estimate-badge" aria-hidden="true">est.</span>
+            <div class="speed-readout" id="speed-hero">
+              <span class="visually-hidden" id="speed-label">Current speed</span>
+              <span class="speed-value zone-neutral" id="speed-value" aria-labelledby="speed-label">--</span>
+              <span class="speed-estimate-badge hidden" id="speed-estimate-badge" aria-hidden="true">est.</span>
+            </div>
           </div>
+
+          <span class="speed-unit" id="speed-unit">KM/H</span>
+          <p class="speed-notice hidden" id="speed-notice" aria-live="polite"></p>
         </div>
 
         <fieldset class="unit-toggle" aria-label="Speed unit">
@@ -116,7 +119,7 @@
       <section class="controls-section" aria-label="Trip controls">
         <div class="control-buttons">
           <button type="button" class="btn btn-trip" id="btn-start">Start trip</button>
-          <button type="button" class="btn btn-trip" id="btn-stop" disabled>End trip</button>
+          <button type="button" class="btn btn-trip btn-end" id="btn-stop" disabled>End trip</button>
         </div>
       </section>
 

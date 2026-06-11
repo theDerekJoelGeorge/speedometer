@@ -30,6 +30,7 @@
     REQUESTING: "requesting",
     TRACKING: "tracking",
     WEAK_GPS: "weak-gps",
+    PAUSED: "paused",
     PERMISSION_DENIED: "permission-denied",
     UNSUPPORTED: "unsupported",
   };
@@ -73,7 +74,7 @@
     appState: APP_STATE.IDLE,
     unit: "kmh",
     hudMode: false,
-    theme: "light",
+    theme: "dark",
     startTime: null,
     elapsedTimer: null,
     previousPosition: null,
@@ -87,6 +88,7 @@
     hasReceivedFix: false,
     speedZone: SPEED_ZONE.NEUTRAL,
     nearestMilestone: null,
+    elapsedOffsetMs: 0,
   };
 
   // ── Helper: unit conversions ────────────────────────────────
@@ -254,12 +256,30 @@
     updateControlsUI();
   }
 
+  function isTripActive() {
+    return (
+      session.appState === APP_STATE.TRACKING ||
+      session.appState === APP_STATE.WEAK_GPS ||
+      session.appState === APP_STATE.REQUESTING ||
+      session.appState === APP_STATE.PAUSED
+    );
+  }
+
+  function isTripTracking() {
+    return (
+      session.appState === APP_STATE.TRACKING ||
+      session.appState === APP_STATE.WEAK_GPS ||
+      session.appState === APP_STATE.REQUESTING
+    );
+  }
+
   function updateStatusUI() {
     const labels = {
       [APP_STATE.IDLE]: "Waiting for signal",
       [APP_STATE.REQUESTING]: "Requesting permission",
       [APP_STATE.TRACKING]: "Tracking",
       [APP_STATE.WEAK_GPS]: "Weak GPS",
+      [APP_STATE.PAUSED]: "Paused",
       [APP_STATE.PERMISSION_DENIED]: "Permission denied",
       [APP_STATE.UNSUPPORTED]: "Not supported",
     };
@@ -267,13 +287,18 @@
   }
 
   function updateControlsUI() {
-    const isActive =
-      session.appState === APP_STATE.TRACKING ||
-      session.appState === APP_STATE.WEAK_GPS ||
-      session.appState === APP_STATE.REQUESTING;
+    const tracking = isTripTracking();
+    const active = isTripActive();
 
-    dom.btnStart.disabled = isActive;
-    dom.btnStop.disabled = !isActive;
+    if (tracking) {
+      dom.btnStart.textContent = "Pause trip";
+    } else if (session.appState === APP_STATE.PAUSED) {
+      dom.btnStart.textContent = "Resume trip";
+    } else {
+      dom.btnStart.textContent = "Start trip";
+    }
+
+    dom.btnStop.disabled = !active;
   }
 
   function showMessage(text) {
@@ -366,8 +391,10 @@
       : "--";
 
     dom.metricElapsed.textContent = session.startTime
-      ? formatElapsedCompact(Date.now() - session.startTime)
-      : "--";
+      ? formatElapsedCompact(session.elapsedOffsetMs + (Date.now() - session.startTime))
+      : session.elapsedOffsetMs > 0
+        ? formatElapsedCompact(session.elapsedOffsetMs)
+        : "--";
   }
 
   function renderAll() {
@@ -389,6 +416,7 @@
     session.hasReceivedFix = false;
     session.speedZone = SPEED_ZONE.NEUTRAL;
     session.nearestMilestone = null;
+    session.elapsedOffsetMs = 0;
     session.startTime = null;
     stopElapsedTimer();
   }
@@ -492,7 +520,15 @@
 
   // ── Tracking control ────────────────────────────────────────
 
-  function startTracking() {
+  function startWatch() {
+    session.watchId = navigator.geolocation.watchPosition(
+      onPositionSuccess,
+      onPositionError,
+      GEO_OPTIONS
+    );
+  }
+
+  function beginTrip() {
     if (!navigator.geolocation) {
       setAppState(APP_STATE.UNSUPPORTED);
       showMessage(
@@ -507,18 +543,54 @@
     hideMessage();
     setAppState(APP_STATE.REQUESTING);
     renderAll();
+    startWatch();
+  }
 
-    session.watchId = navigator.geolocation.watchPosition(
-      onPositionSuccess,
-      onPositionError,
-      GEO_OPTIONS
-    );
+  function pauseTrip() {
+    if (session.watchId != null) {
+      navigator.geolocation.clearWatch(session.watchId);
+      session.watchId = null;
+    }
+    if (session.startTime) {
+      session.elapsedOffsetMs += Date.now() - session.startTime;
+      session.startTime = null;
+    }
+    stopElapsedTimer();
+    setAppState(APP_STATE.PAUSED);
+    renderAll();
+  }
+
+  function resumeTrip() {
+    if (!navigator.geolocation) return;
+
+    session.startTime = Date.now();
+    startElapsedTimer();
+    hideMessage();
+    setAppState(APP_STATE.REQUESTING);
+    renderAll();
+    startWatch();
+  }
+
+  function handleStartPauseClick() {
+    if (isTripTracking()) {
+      pauseTrip();
+      return;
+    }
+    if (session.appState === APP_STATE.PAUSED) {
+      resumeTrip();
+      return;
+    }
+    beginTrip();
   }
 
   function stopTracking() {
     if (session.watchId != null) {
       navigator.geolocation.clearWatch(session.watchId);
       session.watchId = null;
+    }
+    if (session.startTime) {
+      session.elapsedOffsetMs += Date.now() - session.startTime;
+      session.startTime = null;
     }
     stopElapsedTimer();
     setAppState(APP_STATE.IDLE);
@@ -562,7 +634,7 @@
   // ── Event bindings ──────────────────────────────────────────
 
   function bindEvents() {
-    dom.btnStart.addEventListener("click", startTracking);
+    dom.btnStart.addEventListener("click", handleStartPauseClick);
     dom.btnStop.addEventListener("click", stopTracking);
     dom.themeToggle.addEventListener("click", toggleTheme);
     dom.hudToggle.addEventListener("click", toggleHud);
