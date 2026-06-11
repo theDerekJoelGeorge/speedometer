@@ -12,7 +12,9 @@
   const MS_TO_MPH = 2.2369362921;
   const DISTANCE_THRESHOLD_M = 4;
   const WEAK_ACCURACY_M = 50;
-  const SMOOTHING_ALPHA = 0.25;
+  const SMOOTHING_ALPHA_UP = 0.25;
+  const SMOOTHING_ALPHA_DOWN = 0.55;
+  const STOP_SPEED_MS = 0.8;
   const ELAPSED_TICK_MS = 1000;
   const GAUGE_MAX_KMH = 110;
   const SPEED_MILESTONES = [60, 70, 80, 90, 100];
@@ -140,7 +142,18 @@
   function smoothSpeed(rawMs, previousSmoothed) {
     if (rawMs == null || !Number.isFinite(rawMs)) return previousSmoothed;
     if (previousSmoothed == null) return rawMs;
-    return SMOOTHING_ALPHA * rawMs + (1 - SMOOTHING_ALPHA) * previousSmoothed;
+    if (rawMs < STOP_SPEED_MS) return 0;
+    const alpha =
+      rawMs < previousSmoothed ? SMOOTHING_ALPHA_DOWN : SMOOTHING_ALPHA_UP;
+    return alpha * rawMs + (1 - alpha) * previousSmoothed;
+  }
+
+  function isStationary(prev, curr) {
+    if (!prev || !curr) return false;
+    const dt = (curr.timestamp - prev.timestamp) / 1000;
+    if (dt <= 0.5) return false;
+    const dist = haversine(prev.latitude, prev.longitude, curr.latitude, curr.longitude);
+    return dist < DISTANCE_THRESHOLD_M;
   }
 
   function computeFallbackSpeed(prev, curr) {
@@ -436,6 +449,9 @@
     }
 
     if (rawSpeedMs != null && Number.isFinite(rawSpeedMs)) {
+      if (isStationary(session.previousPosition, pos)) {
+        rawSpeedMs = 0;
+      }
       session.currentSpeedMs = Math.max(0, rawSpeedMs);
       session.smoothedSpeedMs = smoothSpeed(session.currentSpeedMs, session.smoothedSpeedMs);
       if (session.smoothedSpeedMs > session.maxSpeedMs) {
